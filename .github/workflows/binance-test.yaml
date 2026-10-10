@@ -1,0 +1,24 @@
+# Put this file in your repo at:  .github/workflows/binance-test.yml
+# Then: Actions tab -> "Binance access test" -> Run workflow. Open the run and read the "Test" step.
+name: Binance access test
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        run: |
+          echo "Runner public IP / location:"
+          curl -s https://ipinfo.io/json | grep -E '"(ip|city|region|country|org)"' || true
+          echo
+          for u in \
+            "https://fapi.binance.com/fapi/v1/ping" \
+            "https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=BTCUSDT" \
+            "https://fapi.binance.com/fapi/v1/klines?symbol=BTCUSDT&interval=1h&limit=2" \
+            "https://api.coingecko.com/api/v3/ping" \
+            "https://api.telegram.org"; do
+            code=$(curl -s -o /tmp/out -w "%{http_code}" "$u")
+            echo "$code  $u"
+            head -c 120 /tmp/out; echo; echo
+          done
+          echo "RESULT GUIDE: Binance lines must say 200. 451 or 403 = Binance blocks GitHub's servers (use the free cloud server instead)."
